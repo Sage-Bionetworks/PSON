@@ -1,12 +1,7 @@
-def getCatelogNumber(filePath):
-	if re.search(r'NCI-PBCF',filePath):
-		arr = filePath.split('/')
-		if len(arr) > 7:
-			return arr[6]
-		else:
-			return re.sub('\.zip','', arr[6])
-	else:
-		return None
+import synapseclient
+syn = synapseclient.login()
+import mimetypes
+import json
 
 def storePSON(ent,path,contentSize=None,md5="test",executed=None,used=None,syn="syn"):
 	filetype = mimetypes.guess_type(ent.name,strict=False)[0]
