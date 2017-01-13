@@ -15,8 +15,8 @@ args = parser.parse_args()
 
 f = pd.read_csv(args.information) #'file_size_md5/cellLineGenomics/exomeSeq_file_size_md5.csv'
 
-# Get catelogNumber
-def getCatelogNumber(filePath):
+# Get catalogNumber
+def getCatalogNumber(filePath):
 	arr = filePath.split('/')
 	if re.search(r'NCI-PBCF',filePath):
 		if len(arr) > 7:
@@ -28,12 +28,11 @@ def getCatelogNumber(filePath):
 			return 'NCI-PBCF-'+arr[-1].split('_')[0]
 	return None
 
-f['catelogNumber'] = f['filePath'].apply(lambda x: getCatelogNumber(x))
-
+f['catalogNumber'] = f['filePath'].apply(lambda x: getCatalogNumber(x))
 
 # Get cellLine
-catNumCellLine = pd.read_csv("catelogNumber_cellLine_mapping.csv")
-f = pd.merge(f,catNumCellLine,how="left",on="catelogNumber")
+catNumCellLine = pd.read_csv("cellLine_catalogNumber_metadata.tsv", sep="\t")
+f = pd.merge(f,catNumCellLine,how="left",on="catalogNumber")
 
 
 # Get fileName
@@ -66,8 +65,12 @@ for index,row in f.iterrows():
     entityFile = File(parentId = folderIds[row['fileFolder']],name=row['fileName'])
     annotations = dict(assay = row['assay'],
     		           fileFormat = row['fileFormat'],
+                       organ = row['organ'],
+                       diagnosis = row['diagnosis'],
+                       cellType = row['cellType'],
+                       tumorType = row['tumorType'],
     		           cellLine = row['cellLine'],
-    		           catelogNumber = row['catelogNumber'],
+    		           catalogNumber = row['catalogNumber'],
     		           dataType = "geneExpression",
     		           consortium = "PSON")
     entityFile.annotations = dict((k,v) for k,v in annotations.iteritems() if v != 'None')

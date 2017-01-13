@@ -25,17 +25,21 @@ f['fileName'] = f['filePath'].apply(lambda x: x.split('/')[-1])
 f['fileFormat'] = f['fileName'].apply(lambda x: x.split('.')[-1])
 f.replace({'fileFormat':{'fq':'fastq'}},inplace=True)
 
-# Get cellLine
-def getCellLine(filePath):
+# Get catalogNumber
+def getcatalogNumber(filePath):
     if re.search(r'NCI-PBCF',filePath):
         arr = filePath.split('/')[6]
-        cellLineArr = arr.split('_')
-        cellLine = '.'.join(cellLineArr[:len(cellLineArr)-2])
-        return cellLine
+        catalogNumberArr = arr.split('_')
+        catalogNumber = '.'.join(cellLineArr[:len(cellLineArr)-2])
+        return catalogNumber
     else:
         return None
 
-f['cellLine'] = f['filePath'].apply(lambda x: getCellLine(x))
+f['catalogNumber'] = f['filePath'].apply(lambda x: getCellLine(x))
+
+# Get cellLine
+catNumCellLine = pd.read_csv("cellLine_catalogNumber_metadata.tsv", sep="\t")
+f = pd.merge(f,catNumCellLine,how="left",on="catalogNumber")
 
 # Get parentFolder
 def getFileFolder(fileName):
@@ -57,8 +61,14 @@ with open(args.folderInfo) as info:
 for index,row in f.iterrows():
     entityFile = File(parentId = folderIds[row['fileFolder']],name=row['fileName'])
     entityFile.annotations = dict(assay = row['assay'],
-                                 fileFormat = row['fileFormat'],
-                                 cellLine = row['cellLine'])
+                                  fileFormat = row['fileFormat'],
+                                  cellLine = row['cellLine'],
+                                  catalogNumber = row['catalogNumber'],
+                                  organ = row['organ'],
+                                  diagnosis = row['diagnosis'],
+                                  cellType = row['cellType'],
+                                  tumorType = row['tumorType'],
+                                  consortium = "PSON")
     newEntity = storePSON(entityFile,row['filePath'],contentSize=row['fileSize'],md5=row['md5'],syn=syn)
 
 
